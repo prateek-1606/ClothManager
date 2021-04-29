@@ -4,13 +4,24 @@ const Cloth = require('../models/cloths')
 const Auth = require('../middleware/auth')
 
 router.get('/', Auth, (req, res) => {
-    Cloth.find({ Ownername: req.user.name })
-        .then((cloths) => {
-            res.json(cloths)
-        })
-        .catch(err => {
-            console.log(err)
-        })
+    if (req.user.role === 'Admin') {
+        Cloth.find()
+            .then((cloths) => {
+                res.json(cloths);
+            })
+            .catch((error) => {
+                console.log(error);
+            })
+    }
+    else {
+        Cloth.find({ Ownername: req.user.name })
+            .then((cloths) => {
+                res.json(cloths)
+            })
+            .catch(err => {
+                console.log(err)
+            })
+    }
 })
 
 router.get('/shared', (req, res) => {
@@ -28,7 +39,7 @@ router.get('/:id', Auth, (req, res) => {
     const id = req.params.id.trim();
     Cloth.findById({ _id: id })
         .then((cloth) => {
-            if (cloth.Ownername === req.user.name) {
+            if (cloth.Ownername === req.user.name || req.user.role === 'Admin') {
                 res.json(cloth);
             }
             else {
@@ -75,7 +86,7 @@ router.put('/:id', Auth, (req, res) => {
     }
     Cloth.findById({ _id: id })
         .then((cloth) => {
-            if (cloth.Ownername === req.user.name) {
+            if (cloth.Ownername === req.user.name || req.user.role === 'Admin') {
                 Cloth.findOneAndUpdate({ _id: id }, {
                     "$set": {
                         "name": name,
@@ -103,7 +114,7 @@ router.delete('/:id', Auth, (req, res) => {
     const id = req.params.id.trim()
     Cloth.findById({ _id: id })
         .then((cloth) => {
-            if (cloth.Ownername === req.user.name) {
+            if (cloth.Ownername === req.user.name || req.user.role === 'Admin') {
                 Cloth.findOneAndDelete({ _id: id })
                     .then(() => {
                         res.json('Cloth Deleted')
